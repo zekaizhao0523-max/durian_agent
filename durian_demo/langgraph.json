@@ -1,0 +1,16 @@
+{
+  "$schema": "https://langgra.ph/schema.json",
+  "python_version": "3.11",
+  "dependencies": [".."],
+  "graphs": {
+    "durian_agent": {
+      "path": "./graph.py:graph",
+      "description": "榴莲电商 AI Agent：推荐、验真、知识问答、售后 tool-calling"
+    },
+    "after_sale_triage": {
+      "path": "./graph.py:after_sale_graph",
+      "description": "榴莲售后分诊：问题分类、规则命中、缺失凭证、处理建议、客服话术、转人工"
+    }
+  },
+  "env": "../.env"
+}

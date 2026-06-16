@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>榴莲可信选购助手</title>
+  <style>
+    :root {
+      --bg: #1a1410;
+      --panel: #2a2118;
+      --accent: #f5b041;
+      --accent2: #58d68d;
+      --text: #f8f4ef;
+      --muted: #b8a99a;
+      --border: #3d3228;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top, #3d2b1f 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .layout {
+      max-width: 1080px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      gap: 0;
+    }
+    .avatar-panel {
+      width: 220px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+      border-right: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+    }
+    .avatar-wrap {
+      position: relative;
+      width: 168px;
+      height: 168px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .avatar-glow {
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(245,176,65,0.22) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .avatar-panel[data-state="talking"] .avatar-glow { opacity: 1; animation: glowPulse 0.8s ease-in-out infinite; }
+    .avatar-img {
+      width: 150px;
+      height: 150px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 18px rgba(0,0,0,0.45));
+      transition: transform 0.25s ease;
+    }
+    .avatar-panel[data-state="idle"] .avatar-img { animation: breathe 3.2s ease-in-out infinite; }
+    .avatar-panel[data-state="thinking"] .avatar-img { animation: thinkBob 0.9s ease-in-out infinite; }
+    .avatar-panel[data-state="talking"] .avatar-img { animation: talkPulse 0.45s ease-in-out infinite; }
+    @keyframes breathe {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-4px) scale(1.02); }
+    }
+    @keyframes thinkBob {
+      0%, 100% { transform: translateY(0) rotate(-1deg); }
+      50% { transform: translateY(-8px) rotate(1deg); }
+    }
+    @keyframes talkPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+    @keyframes glowPulse {
+      0%, 100% { transform: scale(1); opacity: 0.7; }
+      50% { transform: scale(1.06); opacity: 1; }
+    }
+    .avatar-name {
+      margin-top: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 1rem;
+    }
+    .avatar-role {
+      margin-top: 4px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.4;
+    }
+    .avatar-status {
+      margin-top: 14px;
+      padding: 8px 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      min-height: 36px;
+      line-height: 1.35;
+      width: 100%;
+    }
+    .avatar-panel[data-state="thinking"] .avatar-status { color: var(--accent); }
+    .avatar-panel[data-state="talking"] .avatar-status { color: var(--accent2); }
+    .voice-controls {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+    .voice-controls button {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .voice-controls button:hover { border-color: var(--accent); color: var(--accent); }
+    .voice-controls button.active { border-color: var(--accent2); color: var(--accent2); }
+    .user-config {
+      margin-top: 14px;
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .user-config label {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .user-config-row {
+      display: flex;
+      gap: 6px;
+    }
+    .user-config-row input {
+      flex: 1;
+      min-width: 0;
+      background: #1a1410;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 0.8rem;
+    }
+    .user-config-row button {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .user-config-row button:hover { background: rgba(245,176,65,0.12); }
+    .user-config-hint {
+      margin: 6px 0 0;
+      font-size: 0.68rem;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    .user-config-current {
+      margin-top: 4px;
+      font-size: 0.75rem;
+      color: var(--accent2);
+      word-break: break-all;
+    }
+    .chat-panel {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      padding: 20px 20px 12px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.2);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      color: var(--accent);
+    }
+    header p { margin: 6px 0 0; color: var(--muted); font-size: 0.9rem; }
+    .header-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .header-actions button {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.78rem;
+    }
+    .header-actions button:hover { color: var(--accent); border-color: var(--accent); }
+    .typing { color: var(--muted); font-size: 0.85rem; padding: 4px 0; }
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 12px 20px;
+    }
+    .quick-actions button {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+    .quick-actions button:hover { border-color: var(--accent); color: var(--accent); }
+    .quick-actions button.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: #352a1f;
+    }
+    .prompt-panel {
+      display: none;
+      padding: 0 20px 12px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.12);
+    }
+    .prompt-panel.open { display: block; }
+    .prompt-panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .prompt-panel-title {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .prompt-panel-title strong { color: var(--accent); font-weight: 600; }
+    .prompt-panel-close {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.78rem;
+      padding: 2px 6px;
+    }
+    .prompt-panel-close:hover { color: var(--accent); }
+    .prompt-templates {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .prompt-templates button {
+      background: #1f1812;
+      border: 1px dashed var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      text-align: left;
+      max-width: 100%;
+    }
+    .prompt-templates button:hover {
+      border-color: var(--accent2);
+      color: var(--accent2);
+      border-style: solid;
+    }
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .msg {
+      max-width: 88%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      font-size: 0.95rem;
+    }
+    .msg.user {
+      align-self: flex-end;
+      background: #4a3728;
+      border: 1px solid #6b4f35;
+    }
+    .msg.bot {
+      align-self: flex-start;
+      background: var(--panel);
+      border: 1px solid var(--border);
+    }
+    .msg.bot:has(.cards) {
+      max-width: 100%;
+      width: 100%;
+    }
+    .meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    .after-sale-triage {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: rgba(88, 214, 141, 0.08);
+      border: 1px solid rgba(88, 214, 141, 0.25);
+      border-radius: 10px;
+      font-size: 0.8rem;
+      line-height: 1.55;
+    }
+    .after-sale-triage .triage-title {
+      color: var(--accent2);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .after-sale-triage div {
+      margin-bottom: 4px;
+    }
+    .after-sale-triage span {
+      color: var(--muted);
+      display: inline-block;
+      min-width: 5.5em;
+    }
+    .cards {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 8px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .cards::-webkit-scrollbar { height: 5px; }
+    .cards::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+    .card {
+      flex: 0 0 240px;
+      width: 240px;
+      background: #1f1812;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .card h4 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 0.88rem;
+      font-weight: 600;
+      line-height: 1.3;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .card .row {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.35;
+    }
+    .card .row + .row { margin-top: 3px; }
+    .card .price {
+      color: var(--accent2);
+      font-weight: 700;
+      font-size: 1rem;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .card .tip {
+      margin-top: 6px;
+      padding: 6px 8px;
+      background: #2d2418;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      color: #d4a76a;
+      line-height: 1.35;
+    }
+    .card-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .card-foot .row {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .card a, .card button.link {
+      display: inline-block;
+      margin: 0;
+      color: var(--bg);
+      background: var(--accent);
+      padding: 5px 10px;
+      border-radius: 6px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.76rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .composer {
+      padding: 14px 20px 20px;
+      border-top: 1px solid var(--border);
+      background: rgba(0,0,0,0.25);
+    }
+    .input-row { display: flex; gap: 10px; }
+    input, textarea {
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    input:focus, textarea:focus { border-color: var(--accent); }
+    button.send {
+      background: var(--accent);
+      color: #1a1410;
+      border: none;
+      border-radius: 12px;
+      padding: 0 20px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button.send:disabled { opacity: 0.5; cursor: not-allowed; }
+    .trace-input {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+    }
+    .trace-input input { font-size: 0.85rem; }
+    .trace-input button {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 0 14px;
+      cursor: pointer;
+    }
+    .history-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 40;
+    }
+    .history-backdrop.open { display: block; }
+    .history-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(360px, 92vw);
+      height: 100vh;
+      background: #221a14;
+      border-left: 1px solid var(--border);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      box-shadow: -8px 0 24px rgba(0,0,0,0.35);
+    }
+    .history-drawer.open { transform: translateX(0); }
+    .history-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .history-head strong { color: var(--accent); font-size: 1rem; }
+    .history-head button {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 12px;
+    }
+    .history-empty {
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 32px 16px;
+      line-height: 1.5;
+    }
+    .history-item {
+      display: flex;
+      align-items: stretch;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .history-item-main {
+      flex: 1;
+      min-width: 0;
+      text-align: left;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .history-item-main:hover { border-color: var(--accent); }
+    .history-item-main.active {
+      border-color: var(--accent);
+      background: #352a1f;
+    }
+    .history-preview {
+      font-size: 0.88rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-meta {
+      margin-top: 4px;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+    .history-item-del {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 10px;
+      width: 36px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .history-item-del:hover { color: #f1948a; border-color: #f1948a; }
+    .history-footer {
+      padding: 12px 14px 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .history-footer button {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+    .history-footer button:hover { border-color: var(--accent); color: var(--accent); }
+    .history-footer button.danger:hover { border-color: #f1948a; color: #f1948a; }
+    @media (max-width: 720px) {
+      .layout { flex-direction: column; }
+      .avatar-panel {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding: 16px;
+      }
+      .avatar-wrap { width: 88px; height: 88px; }
+      .avatar-img { width: 80px; height: 80px; }
+      .avatar-name, .avatar-role { width: auto; margin-top: 0; }
+      .avatar-status { max-width: 200px; margin-top: 0; }
+      .voice-controls { flex-direction: row; width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="avatar-panel" id="avatarPanel" data-state="idle">
+      <div class="avatar-wrap">
+        <div class="avatar-glow"></div>
+        <img class="avatar-img" src="/static/avatar/monkey.png" alt="小榴导购" />
+      </div>
+      <div class="avatar-name">小榴</div>
+      <div class="avatar-role">榴莲可信选购助手</div>
+      <div class="avatar-status" id="avatarStatus">你好，我是小榴，随时帮你选榴莲～</div>
+      <div class="voice-controls">
+        <button id="voiceToggle" class="active" title="开启/关闭语音播报">🔊 语音播报：开</button>
+        <button id="stopVoiceBtn" title="停止朗读">⏹ 停止朗读</button>
+      </div>
+      <div class="user-config">
+        <label for="userIdInput">当前用户（记忆隔离）</label>
+        <div class="user-config-row">
+          <input id="userIdInput" type="text" placeholder="demo_user" maxlength="64" autocomplete="username" />
+          <button type="button" id="userIdSave">切换</button>
+        </div>
+        <div class="user-config-current" id="userIdDisplay"></div>
+        <p class="user-config-hint">切换后将加载该用户的历史与长期记忆</p>
+      </div>
+    </aside>
+
+    <div class="chat-panel">
+      <header>
+        <div class="header-row">
+          <div>
+            <h1>榴莲可信选购助手</h1>
+            <p>咨询选购 · 批次溯源验真 · 购买引导 · 购后服务（溯源码由我方按产地批次生成）</p>
+          </div>
+          <div class="header-actions">
+            <button id="historyBtn" title="查看历史对话">历史</button>
+            <button id="newChatBtn" title="开始新会话">新对话</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="quick-actions">
+        <button data-topic="recommend">榴莲推荐</button>
+        <button data-topic="knowledge">榴莲知识</button>
+        <button data-topic="trace">榴莲验真</button>
+        <button data-topic="after_sale">售后咨询</button>
+      </div>
+
+      <div class="prompt-panel" id="promptPanel">
+        <div class="prompt-panel-head">
+          <div class="prompt-panel-title" id="promptPanelTitle"></div>
+          <button class="prompt-panel-close" id="promptPanelClose" type="button">收起</button>
+        </div>
+        <div class="prompt-templates" id="promptTemplates"></div>
+      </div>
+
+      <div class="messages" id="messages"></div>
+
+      <div class="composer">
+        <div class="input-row">
+          <textarea id="input" rows="2" placeholder="输入问题，或粘贴溯源码 TR20260609002..."></textarea>
+          <button class="send" id="sendBtn">发送</button>
+        </div>
+        <div class="trace-input">
+          <input id="traceCode" placeholder="批次溯源码（我方生成，如 TR20260609002）" />
+          <button id="scanBtn">验真此码</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="history-backdrop" id="historyBackdrop"></div>
+  <aside class="history-drawer" id="historyDrawer" aria-label="历史对话">
+    <div class="history-head">
+      <strong>历史对话</strong>
+      <button type="button" id="historyClose" title="关闭">×</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+    <div class="history-footer">
+      <button type="button" id="clearAllSessionsBtn" class="danger">清空所有对话</button>
+      <button type="button" id="clearMemoryBtn" class="danger">清空长期记忆</button>
+      <button type="button" id="clearAllBtn" class="danger">清空全部（对话+记忆）</button>
+    </div>
+  </aside>
+
+  <script>
+    const USER_ID_STORAGE_KEY = "durian_user_id";
+    let userId = "demo_user";
+    let sessionId = null;
+    let voiceEnabled = localStorage.getItem("durian_voice") !== "off";
+    let currentAudio = null;
+    let currentObjectUrl = null;
+
+    const messagesEl = document.getElementById("messages");
+    const inputEl = document.getElementById("input");
+    const sendBtn = document.getElementById("sendBtn");
+    const traceCodeEl = document.getElementById("traceCode");
+    const avatarPanel = document.getElementById("avatarPanel");
+    const avatarStatus = document.getElementById("avatarStatus");
+    const voiceToggle = document.getElementById("voiceToggle");
+    const stopVoiceBtn = document.getElementById("stopVoiceBtn");
+    const promptPanel = document.getElementById("promptPanel");
+    const promptPanelTitle = document.getElementById("promptPanelTitle");
+    const promptTemplates = document.getElementById("promptTemplates");
+    const promptPanelClose = document.getElementById("promptPanelClose");
+    const historyBtn = document.getElementById("historyBtn");
+    const historyBackdrop = document.getElementById("historyBackdrop");
+    const historyDrawer = document.getElementById("historyDrawer");
+    const historyList = document.getElementById("historyList");
+    const historyClose = document.getElementById("historyClose");
+    const clearAllSessionsBtn = document.getElementById("clearAllSessionsBtn");
+    const clearMemoryBtn = document.getElementById("clearMemoryBtn");
+    const clearAllBtn = document.getElementById("clearAllBtn");
+    const userIdInput = document.getElementById("userIdInput");
+    const userIdSave = document.getElementById("userIdSave");
+    const userIdDisplay = document.getElementById("userIdDisplay");
+
+    function sessionStorageKey() {
+      return `durian_session_id_${userId}`;
+    }
+
+    function loadStoredSessionId() {
+      return localStorage.getItem(sessionStorageKey());
+    }
+
+    function saveStoredSessionId(id) {
+      if (id) {
+        localStorage.setItem(sessionStorageKey(), id);
+      } else {
+        localStorage.removeItem(sessionStorageKey());
+      }
+    }
+
+    function migrateLegacySessionId() {
+      const legacy = localStorage.getItem("durian_session_id");
+      if (legacy && !loadStoredSessionId()) {
+        saveStoredSessionId(legacy);
+      }
+      localStorage.removeItem("durian_session_id");
+    }
+
+    function normalizeUserId(raw) {
+      const trimmed = String(raw ?? "").trim();
+      if (!trimmed) return null;
+      if (!/^[a-zA-Z0-9_-]{1,64}$/.test(trimmed)) return null;
+      return trimmed;
+    }
+
+    function updateUserIdDisplay() {
+      userIdDisplay.textContent = `当前：${userId}`;
+      userIdInput.value = userId;
+    }
+
+    async function initUserId() {
+      const cached = localStorage.getItem(USER_ID_STORAGE_KEY);
+      if (cached && normalizeUserId(cached)) {
+        userId = cached;
+        updateUserIdDisplay();
+        return;
+      }
+      try {
+        const res = await fetch("/api/v1/app-config");
+        if (res.ok) {
+          const data = await res.json();
+          const fallback = normalizeUserId(data.default_user_id);
+          if (fallback) userId = fallback;
+        }
+      } catch {
+        /* 使用内置默认值 */
+      }
+      updateUserIdDisplay();
+    }
+
+    async function switchUserId(nextRaw) {
+      const nextId = normalizeUserId(nextRaw);
+      if (!nextId) {
+        setAvatarStatus("用户名仅支持字母、数字、下划线和连字符。");
+        return false;
+      }
+      if (nextId === userId) return true;
+
+      stopSpeech();
+      setAvatarState("idle");
+      hidePromptPanel();
+      closeHistoryDrawer();
+
+      userId = nextId;
+      localStorage.setItem(USER_ID_STORAGE_KEY, userId);
+      updateUserIdDisplay();
+
+      sessionId = loadStoredSessionId();
+      messagesEl.innerHTML = "";
+      const restored = await restoreHistory();
+      if (!restored) {
+        appendMessage(
+          "bot",
+          `已切换到用户「${userId}」。我会用这个账号下的记忆和历史来帮你～\n\n想推荐、验真、查知识或问售后，直接说就行。`
+        );
+      } else {
+        setAvatarStatus(`已切换到用户「${userId}」，已恢复上次对话。`);
+      }
+      return true;
+    }
+
+    const PROMPT_TEMPLATES = {
+      recommend: {
+        label: "榴莲推荐",
+        desc: "综合特征、价格、偏好与销售热度；含日常、聚会、送礼等场景",
+        prompts: [
+          "300左右，要甜一点、气味不要太重，推荐一下",
+          "聚会分享，推荐人气高、好开的榴莲",
+          "新手第一次买，想要气味温和、甜度高的",
+          "不想花太多，但要甜、气味淡，推荐哪款？",
+          "200-350都能接受，要甜、气味淡，帮我挑一款",
+          "送礼选什么榴莲好？",
+          "送长辈，预算400左右，推荐体面一点的",
+          "聚会招待朋友，买多大规格合适？",
+          "想送礼盒装，有推荐吗？",
+        ],
+      },
+      knowledge: {
+        label: "榴莲知识",
+        desc: "点击下面问题，快速向小榴提问",
+        loadPrompts: "knowledge",
+      },
+      trace: {
+        label: "榴莲验真",
+        desc: "验真、查批次信息，或了解溯源码规则",
+        action: "trace-verify",
+        prompts: [
+          "我要验真榴莲溯源码",
+          "榴莲溯源码包含什么信息",
+          "批次溯源码是什么意思？",
+          "溯源码是怎么生成的？",
+        ],
+      },
+      after_sale: {
+        label: "售后咨询",
+        desc: "有问题请尽量提供订单号",
+        prompts: [
+          "榴莲过生了，要退款",
+          "订单号 ORD_10001，果子过熟坏了怎么办",
+          "收到的榴莲有破损，怎么申请售后？",
+          "退款流程是什么？",
+        ],
+      },
+    };
+
+    let activeTopic = null;
+    let knowledgeCatalog = null;
+
+    const STATUS = {
+      idle: "你好，我是小榴，随时帮你选榴莲～",
+      thinking: "让我想想…",
+      talking: "小榴正在为你介绍～",
+    };
+
+    function setAvatarState(state) {
+      avatarPanel.dataset.state = state;
+      avatarStatus.textContent = STATUS[state] || STATUS.idle;
+    }
+
+    function updateVoiceToggle() {
+      voiceToggle.classList.toggle("active", voiceEnabled);
+      voiceToggle.textContent = voiceEnabled ? "🔊 语音播报：开" : "🔇 语音播报：关";
+    }
+
+    function stopSpeech() {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
+      if (currentObjectUrl) {
+        URL.revokeObjectURL(currentObjectUrl);
+        currentObjectUrl = null;
+      }
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    function speakWithBrowser(text) {
+      if (!window.speechSynthesis) return Promise.resolve();
+      return new Promise((resolve) => {
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = "zh-CN";
+        utter.rate = 1.05;
+        utter.onend = resolve;
+        utter.onerror = resolve;
+        window.speechSynthesis.speak(utter);
+      });
+    }
+
+    async function speakReply(text) {
+      if (!voiceEnabled || !text.trim()) return;
+      stopSpeech();
+      setAvatarState("talking");
+      try {
+        const res = await fetch("/api/v1/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+        if (!res.ok) throw new Error("tts failed");
+        const blob = await res.blob();
+        currentObjectUrl = URL.createObjectURL(blob);
+        currentAudio = new Audio(currentObjectUrl);
+        await new Promise((resolve, reject) => {
+          currentAudio.onended = resolve;
+          currentAudio.onerror = reject;
+          currentAudio.play().catch(reject);
+        });
+      } catch {
+        await speakWithBrowser(text.slice(0, 300));
+      } finally {
+        setAvatarState("idle");
+      }
+    }
+
+    function appendMessage(role, text, extra = "", id = null) {
+      const div = document.createElement("div");
+      div.className = `msg ${role}`;
+      if (id) div.id = id;
+      div.innerHTML = text + extra;
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return div;
+    }
+
+    function updateBotMessage(el, text, extra = "") {
+      el.innerHTML = escapeHtml(text) + extra;
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function renderCards(cards) {
+      if (!cards || !cards.length) return "";
+      let html = '<div class="cards">';
+      for (const card of cards) {
+        const p = card.payload || {};
+        if (card.type === "trace_batch") {
+          html += `<div class="card">
+            <div class="card-head">
+              <h4>批次溯源 · ${p.valid ? "验真通过" : "无效"}</h4>
+              <span class="row">${p.trace_code || "-"}</span>
+            </div>
+            <div class="row">${p.variety || ""} ${p.grade || ""}级 · ${p.origin || ""} · 规格 ${p.weight_range || "-"}</div>
+            <div class="row">入库 ${p.stock_in_date || "-"} · 成熟度 ${p.ripeness_range || "-"}</div>
+            ${p.granularity_tip ? `<div class="tip">${p.granularity_tip}</div>` : ""}
+          </div>`;
+        } else if (card.type === "product_recommend") {
+          const reasons = (p.match_reasons || []).join(" · ");
+          const buyAction = p.purchase_url
+            ? `<a class="link" href="${escapeAttr(p.purchase_url)}" target="_blank" rel="noopener">立即购买</a>`
+            : `<button class="link" onclick="buyProduct('${escapeAttr(p.product_id)}')">立即购买</button>`;
+          html += `<div class="card">
+            <div class="card-head">
+              <h4>${escapeHtml(p.name || "推荐商品")}</h4>
+              <span class="price">¥${p.price}</span>
+            </div>
+            <div class="row">库存 ${p.stock} · ${p.ship_time || ""}</div>
+            <div class="card-foot">
+              <span class="row">${escapeHtml(reasons || "")}</span>
+              ${buyAction}
+            </div>
+          </div>`;
+        } else if (card.type === "purchase_link") {
+          html += `<div class="card">
+            <div class="card-head">
+              <h4>${p.title || "购买链接"}</h4>
+              <span class="price">¥${p.price}</span>
+            </div>
+            <div class="card-foot">
+              <span class="row"></span>
+              <a href="${p.url}" target="_blank" rel="noopener">前往下单</a>
+            </div>
+          </div>`;
+        } else if (card.type === "order_info") {
+          html += `<div class="card">
+            <div class="card-head">
+              <h4>订单 ${p.order_id}</h4>
+              <span class="price">¥${p.total_amount}</span>
+            </div>
+            <div class="row">状态：${p.status}</div>
+            <div class="row">批次码：${(p.trace_codes || []).join(", ")}</div>
+          </div>`;
+        }
+      }
+      html += "</div>";
+      return html;
+    }
+
+    async function buyProduct(productId) {
+      await sendMessage(`购买 ${productId}，给我链接`);
+    }
+
+    function afterSaleReplyPreview(data) {
+      if (!data.after_sale) return data.reply_text;
+      const a = data.after_sale;
+      const missing = (a.missing_evidence || []).join("、") || "无";
+      return `已为您完成售后分诊：${a.problem_label || a.problem_type}（${a.priority}）。待补充凭证：${missing}。详情见下方分诊卡片。`;
+    }
+
+    function buildMeta(data) {
+      let html = "";
+      if (data.after_sale) {
+        const a = data.after_sale;
+        const rules = (a.matched_rules || []).map((r) => escapeHtml(r)).join("；") || "—";
+        const missing = (a.missing_evidence || []).map((m) => escapeHtml(m)).join("、") || "无";
+        html += `<div class="after-sale-triage">
+          <div class="triage-title">售后分诊</div>
+          <div><span>问题类型</span>${escapeHtml(a.problem_label || a.problem_type)}</div>
+          <div><span>优先级</span>${escapeHtml(a.priority || "")}</div>
+          <div><span>命中规则</span>${rules}</div>
+          <div><span>待补充凭证</span>${missing}</div>
+          <div><span>处理建议</span>${escapeHtml(a.handling_advice || "")}</div>
+          <div><span>推荐客服回复</span>${escapeHtml(a.suggested_reply || "")}</div>
+          <div><span>是否转人工</span>${a.escalate_to_human ? "是" : "否"}</div>
+        </div>`;
+      }
+      if (!data.conclusion && !data.next_action && !html) return "";
+      const recommendIntents = ["consult_budget", "consult_variety"];
+      const isRecommend = recommendIntents.includes(data.intent);
+      let headline = "";
+      if (isRecommend && data.conclusion) {
+        headline = `推荐 ${escapeHtml(data.conclusion)}`;
+      } else if (data.conclusion && !data.after_sale) {
+        headline = `【${escapeHtml(data.conclusion)}】`;
+      }
+      const next = data.next_action ? ` · 下一步：${escapeHtml(data.next_action)}` : "";
+      if (headline || next) {
+        html += `<div class="meta">${headline}${next}</div>`;
+      }
+      return html;
+    }
+
+    async function sendMessage(text) {
+      if (!text.trim()) return;
+      stopSpeech();
+      appendMessage("user", escapeHtml(text));
+      inputEl.value = "";
+      sendBtn.disabled = true;
+      setAvatarState("thinking");
+
+      const botEl = appendMessage("bot", '<span class="typing">正在思考...</span>', "", "bot-stream");
+      let streamedText = "";
+
+      try {
+        const body = {
+          message: text,
+          session_id: sessionId,
+          user_id: userId,
+          trace_code: traceCodeEl.value.trim() || null,
+        };
+        const res = await fetch("/api/v1/chat/stream", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) throw new Error("stream failed");
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let finalData = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split("\n\n");
+          buffer = parts.pop() || "";
+          for (const part of parts) {
+            const line = part.trim();
+            if (!line.startsWith("data: ")) continue;
+            const payload = JSON.parse(line.slice(6));
+            if (payload.type === "text") {
+              streamedText += payload.content;
+              updateBotMessage(botEl, streamedText, "");
+            } else if (payload.type === "done") {
+              finalData = payload.response;
+            }
+          }
+        }
+
+        if (!finalData) throw new Error("no final response");
+        sessionId = finalData.session_id;
+        saveStoredSessionId(sessionId);
+        updateBotMessage(
+          botEl,
+          afterSaleReplyPreview(finalData),
+          buildMeta(finalData) + renderCards(finalData.cards)
+        );
+        await speakReply(finalData.reply_text);
+      } catch (err) {
+        setAvatarState("idle");
+        updateBotMessage(botEl, "请求失败，请确认服务已启动（默认端口 8080）。");
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    async function restoreHistory(targetSessionId) {
+      const sid = targetSessionId || sessionId;
+      if (!sid) return false;
+      try {
+        const res = await fetch(
+          `/api/v1/sessions/${encodeURIComponent(sid)}/history?user_id=${encodeURIComponent(userId)}`
+        );
+        if (!res.ok) return false;
+        const data = await res.json();
+        sessionId = data.session_id;
+        saveStoredSessionId(sessionId);
+        messagesEl.innerHTML = "";
+        hidePromptPanel();
+        for (const msg of data.messages) {
+          const role = msg.role === "user" ? "user" : "bot";
+          const extra = role === "bot" ? renderCards(msg.cards) : "";
+          appendMessage(role, escapeHtml(msg.content), extra);
+        }
+        return data.messages.length > 0;
+      } catch {
+        return false;
+      }
+    }
+
+    function formatHistoryTime(iso) {
+      if (!iso) return "";
+      try {
+        const d = new Date(iso);
+        return d.toLocaleString("zh-CN", {
+          month: "numeric",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      } catch {
+        return "";
+      }
+    }
+
+    function openHistoryDrawer() {
+      historyBackdrop.classList.add("open");
+      historyDrawer.classList.add("open");
+      loadHistoryList();
+    }
+
+    function closeHistoryDrawer() {
+      historyBackdrop.classList.remove("open");
+      historyDrawer.classList.remove("open");
+    }
+
+    async function loadHistoryList() {
+      historyList.innerHTML = '<div class="history-empty">加载中…</div>';
+      try {
+        const res = await fetch(
+          `/api/v1/users/${encodeURIComponent(userId)}/sessions?limit=40`
+        );
+        if (!res.ok) throw new Error("list failed");
+        const data = await res.json();
+        const items = data.items || [];
+        if (!items.length) {
+          historyList.innerHTML =
+            '<div class="history-empty">暂无历史对话<br>发送消息后这里会显示记录</div>';
+          return;
+        }
+        historyList.innerHTML = items
+          .map(
+            (item) => `
+          <div class="history-item" data-session-id="${escapeAttr(item.session_id)}">
+            <button type="button" class="history-item-main${item.session_id === sessionId ? " active" : ""}">
+              <div class="history-preview">${escapeHtml(item.preview)}</div>
+              <div class="history-meta">${escapeHtml(formatHistoryTime(item.updated_at))} · ${item.message_count} 条</div>
+            </button>
+            <button type="button" class="history-item-del" title="删除此对话" data-delete="${escapeAttr(item.session_id)}">🗑</button>
+          </div>`
+          )
+          .join("");
+
+        historyList.querySelectorAll(".history-item-main").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const row = btn.closest(".history-item");
+            const sid = row?.dataset.sessionId;
+            if (!sid) return;
+            stopSpeech();
+            setAvatarState("idle");
+            const ok = await restoreHistory(sid);
+            if (!ok) {
+              appendMessage("bot", "该对话已无法加载，可能已被删除。");
+            }
+            closeHistoryDrawer();
+          });
+        });
+
+        historyList.querySelectorAll("[data-delete]").forEach((btn) => {
+          btn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            const sid = btn.dataset.delete;
+            if (!sid) return;
+            if (!confirm("确定删除这条历史对话吗？")) return;
+            await deleteSessionById(sid);
+            await loadHistoryList();
+          });
+        });
+      } catch {
+        historyList.innerHTML = '<div class="history-empty">加载失败，请确认服务已启动</div>';
+      }
+    }
+
+    async function deleteSessionById(sid) {
+      try {
+        const res = await fetch(
+          `/api/v1/sessions/${encodeURIComponent(sid)}?user_id=${encodeURIComponent(userId)}`,
+          { method: "DELETE" }
+        );
+        if (!res.ok) return false;
+        if (sessionId === sid) {
+          startNewChat({ silent: true });
+        }
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    async function clearAllSessions() {
+      if (!confirm("确定清空全部历史对话吗？当前聊天也会被清空。")) return;
+      try {
+        await fetch(`/api/v1/users/${encodeURIComponent(userId)}/sessions`, {
+          method: "DELETE",
+        });
+        startNewChat({ silent: true });
+        await loadHistoryList();
+        setAvatarStatus("已清空全部历史对话。");
+      } catch {
+        setAvatarStatus("清空对话失败，请稍后重试。");
+      }
+    }
+
+    async function clearLongTermMemory() {
+      if (
+        !confirm(
+          "确定清空长期记忆吗？\n将删除口味偏好、预算画像、批次体验和「记住」的事实，对话记录不受影响。"
+        )
+      ) {
+        return;
+      }
+      try {
+        const res = await fetch(
+          `/api/v1/users/${encodeURIComponent(userId)}/memory`,
+          { method: "DELETE" }
+        );
+        if (!res.ok) throw new Error("clear memory failed");
+        setAvatarStatus("长期记忆已清空，后续将重新学习你的偏好。");
+      } catch {
+        setAvatarStatus("清空长期记忆失败，请稍后重试。");
+      }
+    }
+
+    async function clearAllData() {
+      if (
+        !confirm(
+          "确定清空全部数据吗？\n将删除所有历史对话和长期记忆，且无法恢复。"
+        )
+      ) {
+        return;
+      }
+      try {
+        await fetch(`/api/v1/users/${encodeURIComponent(userId)}/sessions`, {
+          method: "DELETE",
+        });
+        await fetch(`/api/v1/users/${encodeURIComponent(userId)}/memory`, {
+          method: "DELETE",
+        });
+        startNewChat({ silent: true });
+        await loadHistoryList();
+        setAvatarStatus("已清空全部对话与长期记忆。");
+      } catch {
+        setAvatarStatus("清空失败，请稍后重试。");
+      }
+    }
+
+    function setAvatarStatus(text) {
+      avatarStatus.textContent = text;
+    }
+
+    function startNewChat(options = {}) {
+      const silent = options.silent === true;
+      stopSpeech();
+      setAvatarState("idle");
+      hidePromptPanel();
+      sessionId = null;
+      saveStoredSessionId(null);
+      messagesEl.innerHTML = "";
+      if (!silent) {
+        appendMessage(
+          "bot",
+          "好，咱们重新开始～想推荐榴莲、验批次、查知识或问售后，直接跟我说就行。"
+        );
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    function escapeAttr(str) {
+      return String(str ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("'", "&#39;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("<", "&lt;");
+    }
+
+    function applyPromptTemplate(text, topicConfig) {
+      const trimmed = text.trim();
+      if (!trimmed) return;
+
+      if (topicConfig?.action === "trace-verify" && /^TR\d{8,}$/i.test(trimmed)) {
+        traceCodeEl.value = trimmed.toUpperCase();
+        hidePromptPanel();
+        sendMessage(trimmed.toUpperCase());
+        return;
+      }
+
+      if (topicConfig?.action === "trace-verify" && trimmed.includes("验真")) {
+        traceCodeEl.focus();
+        traceCodeEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        const code = traceCodeEl.value.trim();
+        hidePromptPanel();
+        if (code) {
+          sendMessage(code);
+          return;
+        }
+        sendMessage(trimmed);
+        return;
+      }
+
+      if (
+        topicConfig?.action === "trace-verify" &&
+        (trimmed.includes("溯源码") || trimmed.includes("批次码"))
+      ) {
+        hidePromptPanel();
+        sendMessage(trimmed);
+        return;
+      }
+
+      hidePromptPanel();
+      sendMessage(trimmed);
+    }
+
+    function renderPromptButtons(prompts, topicConfig) {
+      return prompts
+        .map(
+          (prompt) =>
+            `<button type="button" data-prompt="${escapeAttr(prompt)}">${escapeHtml(prompt)}</button>`
+        )
+        .join("");
+    }
+
+    function bindPromptButtons(container, topicConfig) {
+      container.querySelectorAll("button[data-prompt]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          applyPromptTemplate(btn.dataset.prompt, topicConfig);
+        });
+      });
+    }
+
+    function renderPromptPanel(prompts, config) {
+      promptTemplates.innerHTML = renderPromptButtons(prompts, config);
+      bindPromptButtons(promptTemplates, config);
+    }
+
+    async function loadKnowledgeCatalog() {
+      if (knowledgeCatalog) return knowledgeCatalog;
+      try {
+        const res = await fetch("/api/v1/knowledge");
+        if (!res.ok) throw new Error("knowledge fetch failed");
+        knowledgeCatalog = await res.json();
+      } catch {
+        knowledgeCatalog = {
+          title: "榴莲知识",
+          description: PROMPT_TEMPLATES.knowledge.desc,
+          prompts: [
+            "猫山王和金枕哪个更适合新手？",
+            "榴莲怎么保存？",
+          ],
+        };
+      }
+      return knowledgeCatalog;
+    }
+
+    async function showPromptPanel(topic) {
+      const config = PROMPT_TEMPLATES[topic];
+      if (!config) return;
+
+      activeTopic = topic;
+      document.querySelectorAll(".quick-actions button").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.topic === topic);
+      });
+
+      let prompts = config.prompts || [];
+      let title = config.label;
+      let desc = config.desc;
+
+      if (config.loadPrompts === "knowledge") {
+        const catalog = await loadKnowledgeCatalog();
+        prompts = catalog.prompts || [];
+        title = catalog.title || title;
+        desc = catalog.description || desc;
+      }
+
+      promptPanelTitle.innerHTML = `<strong>${escapeHtml(title)}</strong> · ${escapeHtml(desc)}`;
+      renderPromptPanel(prompts, config);
+      promptPanel.classList.add("open");
+      if (config.action === "trace-verify") {
+        traceCodeEl.focus();
+      }
+    }
+
+    function hidePromptPanel() {
+      activeTopic = null;
+      promptPanel.classList.remove("open");
+      document.querySelectorAll(".quick-actions button").forEach((btn) => {
+        btn.classList.remove("active");
+      });
+    }
+
+    sendBtn.addEventListener("click", () => sendMessage(inputEl.value));
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage(inputEl.value);
+      }
+    });
+    document.getElementById("scanBtn").addEventListener("click", () => {
+      const code = traceCodeEl.value.trim();
+      if (code) sendMessage(code);
+    });
+    document.querySelectorAll(".quick-actions button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const topic = btn.dataset.topic;
+        if (activeTopic === topic) {
+          hidePromptPanel();
+          return;
+        }
+        showPromptPanel(topic);
+      });
+    });
+    promptPanelClose.addEventListener("click", hidePromptPanel);
+    document.getElementById("newChatBtn").addEventListener("click", () => startNewChat());
+    historyBtn.addEventListener("click", openHistoryDrawer);
+    historyClose.addEventListener("click", closeHistoryDrawer);
+    historyBackdrop.addEventListener("click", closeHistoryDrawer);
+    clearAllSessionsBtn.addEventListener("click", clearAllSessions);
+    clearMemoryBtn.addEventListener("click", clearLongTermMemory);
+    clearAllBtn.addEventListener("click", clearAllData);
+    voiceToggle.addEventListener("click", () => {
+      voiceEnabled = !voiceEnabled;
+      localStorage.setItem("durian_voice", voiceEnabled ? "on" : "off");
+      updateVoiceToggle();
+      if (!voiceEnabled) stopSpeech();
+      if (!voiceEnabled) setAvatarState("idle");
+    });
+    stopVoiceBtn.addEventListener("click", () => {
+      stopSpeech();
+      setAvatarState("idle");
+    });
+
+    userIdSave.addEventListener("click", () => switchUserId(userIdInput.value));
+    userIdInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        switchUserId(userIdInput.value);
+      }
+    });
+
+    updateVoiceToggle();
+
+    (async () => {
+      await initUserId();
+      migrateLegacySessionId();
+      sessionId = loadStoredSessionId();
+      const restored = await restoreHistory();
+      if (!restored) {
+        appendMessage(
+          "bot",
+          "嗨，我是小榴～帮你挑榴莲、验批次、聊保存和售后。\n试试：「300左右要甜一点的推荐」，或者扫个溯源码验真。"
+        );
+      }
+    })();
+  </script>
+</body>
+</html>
