@@ -6,61 +6,111 @@
   <title>榴莲可信选购助手</title>
   <style>
     :root {
-      --bg: #1a1410;
-      --panel: #2a2118;
-      --accent: #f5b041;
-      --accent2: #58d68d;
-      --text: #f8f4ef;
-      --muted: #b8a99a;
-      --border: #3d3228;
+      --bg: #12130f;
+      --panel: #1b1d17;
+      --panel-strong: #242719;
+      --surface: rgba(255, 255, 255, 0.055);
+      --surface-strong: rgba(255, 255, 255, 0.09);
+      --accent: #f6c453;
+      --accent-strong: #ffda7a;
+      --accent2: #63d889;
+      --accent3: #80d6ff;
+      --danger: #ff8a80;
+      --text: #fff8e8;
+      --muted: #b9b39f;
+      --subtle: #817b6a;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
     }
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-      background: radial-gradient(circle at top, #3d2b1f 0%, var(--bg) 55%);
+      background:
+        linear-gradient(135deg, rgba(246, 196, 83, 0.14), transparent 32%),
+        linear-gradient(225deg, rgba(99, 216, 137, 0.13), transparent 34%),
+        linear-gradient(180deg, #171811 0%, var(--bg) 54%, #0e100d 100%);
       color: var(--text);
       min-height: 100vh;
+      overflow: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.52), transparent 72%);
     }
     .layout {
-      max-width: 1080px;
+      position: relative;
+      max-width: 1180px;
       margin: 0 auto;
       min-height: 100vh;
+      height: 100vh;
       display: flex;
-      gap: 0;
+      gap: 18px;
+      padding: 18px;
     }
     .avatar-panel {
-      width: 220px;
+      position: relative;
+      width: 258px;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px 16px;
-      border-right: 1px solid var(--border);
-      background: rgba(0,0,0,0.18);
+      padding: 20px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035)),
+        rgba(17, 19, 14, 0.78);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px) saturate(1.2);
+      overflow: hidden;
+    }
+    .avatar-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-top: 3px solid rgba(246, 196, 83, 0.65);
+      pointer-events: none;
     }
     .avatar-wrap {
       position: relative;
-      width: 168px;
-      height: 168px;
+      width: 172px;
+      height: 172px;
       display: flex;
       align-items: center;
       justify-content: center;
+      margin-top: 6px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 45% 35%, rgba(255, 218, 122, 0.28), transparent 35%),
+        linear-gradient(145deg, rgba(99, 216, 137, 0.16), rgba(128, 214, 255, 0.06));
+      border: 1px solid rgba(255, 255, 255, 0.16);
     }
     .avatar-glow {
       position: absolute;
-      inset: 8px;
+      inset: 10px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(245,176,65,0.22) 0%, transparent 70%);
-      opacity: 0;
+      background: radial-gradient(circle, rgba(246,196,83,0.24) 0%, transparent 68%);
+      opacity: 0.62;
       transition: opacity 0.3s;
     }
     .avatar-panel[data-state="talking"] .avatar-glow { opacity: 1; animation: glowPulse 0.8s ease-in-out infinite; }
     .avatar-img {
-      width: 150px;
-      height: 150px;
+      position: relative;
+      width: 148px;
+      height: 148px;
       object-fit: contain;
-      filter: drop-shadow(0 8px 18px rgba(0,0,0,0.45));
+      border-radius: 50%;
+      background: #fff8e8;
+      filter: drop-shadow(0 14px 24px rgba(0,0,0,0.5));
       transition: transform 0.25s ease;
     }
     .avatar-panel[data-state="idle"] .avatar-img { animation: breathe 3.2s ease-in-out infinite; }
@@ -83,28 +133,29 @@
       50% { transform: scale(1.06); opacity: 1; }
     }
     .avatar-name {
-      margin-top: 14px;
+      margin-top: 18px;
       font-weight: 700;
-      color: var(--accent);
-      font-size: 1rem;
+      color: var(--text);
+      font-size: 1.2rem;
+      letter-spacing: 0;
     }
     .avatar-role {
-      margin-top: 4px;
-      font-size: 0.78rem;
-      color: var(--muted);
+      margin-top: 6px;
+      font-size: 0.82rem;
+      color: var(--accent-strong);
       text-align: center;
       line-height: 1.4;
     }
     .avatar-status {
-      margin-top: 14px;
-      padding: 8px 12px;
-      background: var(--panel);
+      margin-top: 16px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.065);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 8px;
       font-size: 0.8rem;
       color: var(--muted);
       text-align: center;
-      min-height: 36px;
+      min-height: 44px;
       line-height: 1.35;
       width: 100%;
     }
@@ -113,28 +164,30 @@
     .voice-controls {
       margin-top: 14px;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       gap: 8px;
       width: 100%;
     }
     .voice-controls button {
-      background: var(--panel);
+      flex: 1;
+      background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 8px 10px;
-      border-radius: 10px;
+      padding: 9px 10px;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
+      transition: transform 160ms ease, border-color 160ms ease, color 160ms ease, background 160ms ease;
     }
-    .voice-controls button:hover { border-color: var(--accent); color: var(--accent); }
-    .voice-controls button.active { border-color: var(--accent2); color: var(--accent2); }
+    .voice-controls button:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+    .voice-controls button.active { border-color: rgba(99, 216, 137, 0.55); color: var(--accent2); background: rgba(99, 216, 137, 0.08); }
     .user-config {
       margin-top: 14px;
       width: 100%;
-      padding: 10px 12px;
-      background: var(--panel);
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.055);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 8px;
     }
     .user-config label {
       display: block;
@@ -149,11 +202,11 @@
     .user-config-row input {
       flex: 1;
       min-width: 0;
-      background: #1a1410;
+      background: rgba(0, 0, 0, 0.25);
       border: 1px solid var(--border);
       color: var(--text);
       border-radius: 8px;
-      padding: 6px 8px;
+      padding: 8px 9px;
       font-size: 0.8rem;
     }
     .user-config-row button {
@@ -161,7 +214,7 @@
       border: 1px solid var(--accent);
       color: var(--accent);
       border-radius: 8px;
-      padding: 6px 10px;
+      padding: 7px 10px;
       font-size: 0.75rem;
       cursor: pointer;
       white-space: nowrap;
@@ -184,25 +237,48 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
+      height: calc(100vh - 36px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.082), rgba(255, 255, 255, 0.035)),
+        rgba(13, 15, 12, 0.82);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px) saturate(1.18);
+      overflow: hidden;
     }
     header {
-      padding: 20px 20px 12px;
+      padding: 20px 22px 14px;
       border-bottom: 1px solid var(--border);
-      background: rgba(0,0,0,0.2);
+      background:
+        linear-gradient(90deg, rgba(246, 196, 83, 0.12), rgba(99, 216, 137, 0.045)),
+        rgba(0, 0, 0, 0.16);
     }
     header h1 {
       margin: 0;
-      font-size: 1.35rem;
-      color: var(--accent);
+      font-size: 1.5rem;
+      color: var(--text);
+      letter-spacing: 0;
     }
-    header p { margin: 6px 0 0; color: var(--muted); font-size: 0.9rem; }
+    header p { margin: 7px 0 0; color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
     .header-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .header-row h1::before {
+      content: "✦";
+      color: var(--accent);
+      margin-right: 8px;
+      font-size: 1.05rem;
+      vertical-align: 2px;
+    }
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
     .header-actions button {
-      background: transparent;
+      background: rgba(255, 255, 255, 0.065);
       border: 1px solid var(--border);
       color: var(--muted);
-      padding: 6px 10px;
+      padding: 8px 11px;
       border-radius: 8px;
       cursor: pointer;
       font-size: 0.78rem;
@@ -213,28 +289,30 @@
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      padding: 12px 20px;
+      padding: 12px 22px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
     .quick-actions button {
-      background: var(--panel);
+      background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 8px 12px;
+      padding: 8px 13px;
       border-radius: 999px;
       cursor: pointer;
       font-size: 0.82rem;
+      transition: transform 160ms ease, border-color 160ms ease, color 160ms ease, background 160ms ease;
     }
-    .quick-actions button:hover { border-color: var(--accent); color: var(--accent); }
+    .quick-actions button:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
     .quick-actions button.active {
       border-color: var(--accent);
       color: var(--accent);
-      background: #352a1f;
+      background: rgba(246, 196, 83, 0.1);
     }
     .prompt-panel {
       display: none;
-      padding: 0 20px 12px;
+      padding: 0 22px 14px;
       border-bottom: 1px solid var(--border);
-      background: rgba(0,0,0,0.12);
+      background: rgba(0,0,0,0.11);
     }
     .prompt-panel.open { display: block; }
     .prompt-panel-head {
@@ -263,11 +341,11 @@
       gap: 8px;
     }
     .prompt-templates button {
-      background: #1f1812;
+      background: rgba(255, 255, 255, 0.055);
       border: 1px dashed var(--border);
       color: var(--text);
       padding: 8px 12px;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 0.8rem;
       line-height: 1.4;
@@ -282,27 +360,43 @@
     .messages {
       flex: 1;
       overflow-y: auto;
-      padding: 16px 20px 8px;
+      padding: 18px 22px 10px;
       display: flex;
       flex-direction: column;
       gap: 14px;
+      scrollbar-color: rgba(246, 196, 83, 0.38) transparent;
+    }
+    .messages::-webkit-scrollbar { width: 8px; }
+    .messages::-webkit-scrollbar-thumb { background: rgba(246, 196, 83, 0.28); border-radius: 999px; }
+    .messages:empty::before {
+      content: "选择上方场景，或直接输入售后、验真、选购问题";
+      align-self: center;
+      margin-top: min(22vh, 150px);
+      padding: 12px 16px;
+      border: 1px dashed rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      color: var(--subtle);
+      font-size: 0.86rem;
     }
     .msg {
-      max-width: 88%;
+      max-width: min(88%, 720px);
       padding: 12px 14px;
-      border-radius: 14px;
+      border-radius: 8px;
       line-height: 1.55;
       white-space: pre-wrap;
       font-size: 0.95rem;
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.18);
     }
     .msg.user {
       align-self: flex-end;
-      background: #4a3728;
-      border: 1px solid #6b4f35;
+      background:
+        linear-gradient(135deg, rgba(246, 196, 83, 0.2), rgba(99, 216, 137, 0.06)),
+        rgba(74, 55, 40, 0.82);
+      border: 1px solid rgba(246, 196, 83, 0.28);
     }
     .msg.bot {
       align-self: flex-start;
-      background: var(--panel);
+      background: rgba(255, 255, 255, 0.07);
       border: 1px solid var(--border);
     }
     .msg.bot:has(.cards) {
@@ -316,10 +410,12 @@
     }
     .after-sale-triage {
       margin-top: 10px;
-      padding: 10px 12px;
-      background: rgba(88, 214, 141, 0.08);
-      border: 1px solid rgba(88, 214, 141, 0.25);
-      border-radius: 10px;
+      padding: 12px 13px;
+      background:
+        linear-gradient(135deg, rgba(99, 216, 137, 0.12), rgba(128, 214, 255, 0.055)),
+        rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(99, 216, 137, 0.3);
+      border-radius: 8px;
       font-size: 0.8rem;
       line-height: 1.55;
     }
@@ -341,7 +437,7 @@
       display: flex;
       flex-direction: row;
       flex-wrap: nowrap;
-      gap: 8px;
+      gap: 10px;
       overflow-x: auto;
       overflow-y: hidden;
       padding-bottom: 4px;
@@ -355,12 +451,14 @@
       border-radius: 3px;
     }
     .card {
-      flex: 0 0 240px;
-      width: 240px;
-      background: #1f1812;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px 10px;
+      flex: 0 0 250px;
+      width: 250px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.04)),
+        rgba(17, 19, 14, 0.78);
+      border: 1px solid rgba(246, 196, 83, 0.18);
+      border-radius: 8px;
+      padding: 10px 11px;
     }
     .card-head {
       display: flex;
@@ -390,15 +488,16 @@
     .card .price {
       color: var(--accent2);
       font-weight: 700;
-      font-size: 1rem;
+      font-size: 1.02rem;
       flex-shrink: 0;
       line-height: 1;
     }
     .card .tip {
       margin-top: 6px;
       padding: 6px 8px;
-      background: #2d2418;
-      border-radius: 6px;
+      background: rgba(246, 196, 83, 0.09);
+      border: 1px solid rgba(246, 196, 83, 0.12);
+      border-radius: 8px;
       font-size: 0.72rem;
       color: #d4a76a;
       line-height: 1.35;
@@ -421,9 +520,9 @@
       display: inline-block;
       margin: 0;
       color: var(--bg);
-      background: var(--accent);
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
       padding: 5px 10px;
-      border-radius: 6px;
+      border-radius: 8px;
       text-decoration: none;
       border: none;
       cursor: pointer;
@@ -432,30 +531,39 @@
       flex-shrink: 0;
     }
     .composer {
-      padding: 14px 20px 20px;
+      padding: 14px 22px 20px;
       border-top: 1px solid var(--border);
-      background: rgba(0,0,0,0.25);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(0, 0, 0, 0.22)),
+        rgba(0,0,0,0.18);
     }
     .input-row { display: flex; gap: 10px; }
     input, textarea {
       flex: 1;
-      background: var(--panel);
+      background: rgba(0, 0, 0, 0.24);
       border: 1px solid var(--border);
       color: var(--text);
-      border-radius: 12px;
+      border-radius: 8px;
       padding: 12px 14px;
       font-size: 0.95rem;
       outline: none;
+      font-family: inherit;
+      transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
     }
-    input:focus, textarea:focus { border-color: var(--accent); }
+    input:focus, textarea:focus {
+      border-color: rgba(246, 196, 83, 0.68);
+      box-shadow: 0 0 0 3px rgba(246, 196, 83, 0.12);
+      background: rgba(0, 0, 0, 0.3);
+    }
     button.send {
-      background: var(--accent);
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
       color: #1a1410;
       border: none;
-      border-radius: 12px;
-      padding: 0 20px;
+      border-radius: 8px;
+      padding: 0 22px;
       font-weight: 700;
       cursor: pointer;
+      min-width: 76px;
     }
     button.send:disabled { opacity: 0.5; cursor: not-allowed; }
     .trace-input {
@@ -465,10 +573,10 @@
     }
     .trace-input input { font-size: 0.85rem; }
     .trace-input button {
-      background: var(--panel);
+      background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border);
       color: var(--text);
-      border-radius: 10px;
+      border-radius: 8px;
       padding: 0 14px;
       cursor: pointer;
     }
@@ -476,7 +584,8 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.45);
+      background: rgba(0,0,0,0.52);
+      backdrop-filter: blur(4px);
       z-index: 40;
     }
     .history-backdrop.open { display: block; }
@@ -486,7 +595,9 @@
       right: 0;
       width: min(360px, 92vw);
       height: 100vh;
-      background: #221a14;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035)),
+        #151711;
       border-left: 1px solid var(--border);
       z-index: 50;
       display: flex;
@@ -534,9 +645,9 @@
       flex: 1;
       min-width: 0;
       text-align: left;
-      background: var(--panel);
+      background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 8px;
       padding: 10px 12px;
       cursor: pointer;
       color: var(--text);
@@ -544,7 +655,7 @@
     .history-item-main:hover { border-color: var(--accent); }
     .history-item-main.active {
       border-color: var(--accent);
-      background: #352a1f;
+      background: rgba(246, 196, 83, 0.1);
     }
     .history-preview {
       font-size: 0.88rem;
@@ -561,12 +672,12 @@
       background: transparent;
       border: 1px solid var(--border);
       color: var(--muted);
-      border-radius: 10px;
+      border-radius: 8px;
       width: 36px;
       cursor: pointer;
       font-size: 0.9rem;
     }
-    .history-item-del:hover { color: #f1948a; border-color: #f1948a; }
+    .history-item-del:hover { color: var(--danger); border-color: var(--danger); }
     .history-footer {
       padding: 12px 14px 18px;
       border-top: 1px solid var(--border);
@@ -575,33 +686,58 @@
       gap: 8px;
     }
     .history-footer button {
-      background: var(--panel);
+      background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border);
       color: var(--text);
       padding: 9px 12px;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 0.82rem;
     }
     .history-footer button:hover { border-color: var(--accent); color: var(--accent); }
-    .history-footer button.danger:hover { border-color: #f1948a; color: #f1948a; }
-    @media (max-width: 720px) {
-      .layout { flex-direction: column; }
+    .history-footer button.danger:hover { border-color: var(--danger); color: var(--danger); }
+    @media (max-width: 860px) {
+      body { overflow: auto; }
+      .layout {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        padding: 10px;
+        gap: 10px;
+      }
       .avatar-panel {
         width: 100%;
         flex-direction: row;
         flex-wrap: wrap;
-        justify-content: center;
-        gap: 12px;
+        justify-content: flex-start;
+        gap: 10px 12px;
         border-right: none;
-        border-bottom: 1px solid var(--border);
-        padding: 16px;
+        padding: 12px;
       }
       .avatar-wrap { width: 88px; height: 88px; }
       .avatar-img { width: 80px; height: 80px; }
-      .avatar-name, .avatar-role { width: auto; margin-top: 0; }
-      .avatar-status { max-width: 200px; margin-top: 0; }
-      .voice-controls { flex-direction: row; width: auto; }
+      .avatar-name { margin: 0; font-size: 1rem; }
+      .avatar-role { margin: 0; }
+      .avatar-status { flex: 1 1 180px; margin-top: 0; text-align: left; }
+      .voice-controls { flex: 1 1 210px; margin-top: 0; }
+      .user-config { flex: 1 1 260px; margin-top: 0; }
+      .chat-panel { height: auto; min-height: 72vh; }
+      header, .quick-actions, .prompt-panel, .messages, .composer { padding-left: 14px; padding-right: 14px; }
+      .header-row { flex-direction: column; }
+      .header-actions { width: 100%; }
+      .header-actions button { flex: 1; }
+      .messages { min-height: 48vh; }
+      .msg { max-width: 100%; }
+      .input-row { flex-direction: column; }
+      button.send { min-height: 42px; }
+      .trace-input { flex-direction: column; }
+      .trace-input button { min-height: 40px; }
+    }
+    @media (max-width: 520px) {
+      .quick-actions button { flex: 1 1 calc(50% - 8px); }
+      .voice-controls { flex-direction: column; }
+      .cards { gap: 8px; }
+      .card { flex-basis: 230px; width: 230px; }
     }
   </style>
 </head>
